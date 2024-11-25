@@ -22,6 +22,17 @@ async function main() {
   const tokenAContract = await ethers.getContractAt('IERC20', tokenA);
   const tokenBContract = await ethers.getContractAt('IERC20', tokenB);
 
+  // Check balances
+  const balanceA = await tokenAContract.balanceOf(deployer.address);
+  const balanceB = await tokenBContract.balanceOf(deployer.address);
+  console.log("Balance of Token A:", ethers.utils.formatUnits(balanceA, 18));
+  console.log("Balance of Token B:", ethers.utils.formatUnits(balanceB, 18));
+
+  if (balanceA.lt(amountA) || balanceB.lt(amountB)) {
+    console.error("Insufficient balance for adding liquidity.");
+    return;
+  }
+
   // Approve the Nonfungible Position Manager to spend the tokens
   const approvalAmount = ethers.utils.parseUnits('100', 18); // Approve 100 tokens just to be safe
   await tokenAContract.connect(deployer).approve(positionManagerAddress, approvalAmount);
@@ -29,7 +40,7 @@ async function main() {
 
   // Connect to the position manager contract
   const PositionManager = await ethers.getContractAt('INonfungiblePositionManager', positionManagerAddress);
-  const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from now
+  const deadline = Math.floor(Date.now() / 1000) + 60 * 30; // 30 minutes from now
 
   try {
     // Add liquidity to the pool with manual gas limit
@@ -46,7 +57,8 @@ async function main() {
       recipient: deployer.address,
       deadline: deadline
     }, {
-      gasLimit: 5000000 // Set a manual gas limit (adjust if needed)
+      gasLimit: 3000000, // Set a manual gas limit (adjust if needed)
+      gasPrice: ethers.utils.parseUnits('20', 'gwei') // Set a reasonable gas price
     });
 
     // Wait for the transaction to be confirmed
