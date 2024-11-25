@@ -1,8 +1,9 @@
-import '@nomiclabs/hardhat-ethers'
-import '@nomiclabs/hardhat-etherscan'
-import '@nomiclabs/hardhat-waffle'
-import 'hardhat-typechain'
-import 'hardhat-watcher'
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-etherscan';
+import '@nomiclabs/hardhat-waffle';
+import 'hardhat-typechain';
+import 'hardhat-watcher';
+import 'dotenv/config'; // Import environment variables
 
 const LOW_OPTIMIZER_COMPILER_SETTINGS = {
   version: '0.7.6',
@@ -16,7 +17,7 @@ const LOW_OPTIMIZER_COMPILER_SETTINGS = {
       bytecodeHash: 'none',
     },
   },
-}
+};
 
 const LOWEST_OPTIMIZER_COMPILER_SETTINGS = {
   version: '0.7.6',
@@ -30,7 +31,7 @@ const LOWEST_OPTIMIZER_COMPILER_SETTINGS = {
       bytecodeHash: 'none',
     },
   },
-}
+};
 
 const DEFAULT_COMPILER_SETTINGS = {
   version: '0.7.6',
@@ -44,12 +45,16 @@ const DEFAULT_COMPILER_SETTINGS = {
       bytecodeHash: 'none',
     },
   },
-}
+};
 
 export default {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: false,
+    },
+    esacoin: {
+      url: "http://65.108.151.70:8545", // Replace with the RPC URL of your private Geth node
+      accounts: [`0x${process.env.COPPER_PRIVATE_KEY}`], // Use the private key from the environment variable
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -80,8 +85,6 @@ export default {
     },
   },
   etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   solidity: {
@@ -101,4 +104,4 @@ export default {
       verbose: true,
     },
   },
-}
+};
