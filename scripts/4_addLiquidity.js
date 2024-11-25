@@ -15,15 +15,24 @@ async function main() {
   // Set parameters for adding liquidity
   const amountA = ethers.utils.parseUnits('10', 18); // 10 tokens of token A
   const amountB = ethers.utils.parseUnits('10', 18); // 10 tokens of token B
-  const tickLower = -276421; // Set a reasonable lower tick range
-  const tickUpper = 0; // Set a reasonable upper tick range
+  const tickLower = -276421; // Adjusted tick value for 0.25 Euro
+  const tickUpper = 0; // Adjusted tick value for 1 Euro
+
+  // Connect to the token contracts
+  const tokenAContract = await ethers.getContractAt('IERC20', tokenA);
+  const tokenBContract = await ethers.getContractAt('IERC20', tokenB);
+
+  // Approve the Nonfungible Position Manager to spend the tokens
+  const approvalAmount = ethers.utils.parseUnits('100', 18); // Approve 100 tokens just to be safe
+  await tokenAContract.connect(deployer).approve(positionManagerAddress, approvalAmount);
+  await tokenBContract.connect(deployer).approve(positionManagerAddress, approvalAmount);
 
   // Connect to the position manager contract
   const PositionManager = await ethers.getContractAt('INonfungiblePositionManager', positionManagerAddress);
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from now
 
   try {
-    // Add liquidity to the pool
+    // Add liquidity to the pool with manual gas limit
     const tx = await PositionManager.mint({
       token0: tokenA,
       token1: tokenB,
@@ -36,6 +45,8 @@ async function main() {
       amount1Min: 0,
       recipient: deployer.address,
       deadline: deadline
+    }, {
+      gasLimit: 5000000 // Set a manual gas limit (adjust if needed)
     });
 
     // Wait for the transaction to be confirmed
