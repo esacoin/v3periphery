@@ -1,31 +1,46 @@
+// Import necessary libraries and load environment variables
 require('dotenv').config();
 const { ethers } = require('hardhat');
 
-const tokenA = '0x7e6D75B1A8Bd04778387DFb7063D192F835D084e'; // Holon
-const tokenB = '0x8CB4c1B4094e58Ff8a071421c7d1cf87daA1BCDe'; // Hether
-const feeTier = 500; // 0.05% fee tier
-const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // Nonfungible Position Manager address
+// New Token Addresses
+const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // TTN
+const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // TT2
 
-async function addLiquidity() {
+// The Nonfungible Position Manager contract address
+const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // Update with your deployed NonfungiblePositionManager address
+// Fee tier for the pool (e.g., 500 for 0.05%)
+const feeTier = 500;
+
+// Tick ranges for the pool, adjusted based on the desired price ratio (e.g., 1 TTN = 2 TT2)
+const tickLower = -276330; // Approximate tick for price of 1 TT2 per TTN
+const tickUpper = 276330; // Approximate tick for price of 4 TT2 per TTN
+
+async function main() {
   const [deployer] = await ethers.getSigners();
   console.log('Adding liquidity with the account:', deployer.address);
 
+  // Connect to Nonfungible Position Manager contract
+  const positionManager = await ethers.getContractAt('INonfungiblePositionManager', positionManagerAddress);
+
+  // Set parameters for adding liquidity
+  const amountA = ethers.utils.parseUnits('10', 18); // 10 TTN tokens
+  const amountB = ethers.utils.parseUnits('20', 18); // 20 TT2 tokens
+
   try {
-    // Approve tokens if not done yet
+    // Approve the Position Manager to spend tokens on behalf of deployer
     const tokenAContract = await ethers.getContractAt('IERC20', tokenA);
-    await tokenAContract.approve(positionManagerAddress, ethers.constants.MaxUint256);
-
     const tokenBContract = await ethers.getContractAt('IERC20', tokenB);
-    await tokenBContract.approve(positionManagerAddress, ethers.constants.MaxUint256);
 
-    // Set parameters for adding liquidity
-    const amountA = ethers.utils.parseUnits('10', 18); // 10 tokens of tokenA (Holon)
-    const amountB = ethers.utils.parseUnits('20', 18); // 20 tokens of tokenB (Hether)
-    const tickLower = -887220; // Replace with the appropriate tick range for your price
-    const tickUpper = 887220;  // Replace with the appropriate tick range for your price
+    await tokenAContract.approve(positionManagerAddress, amountA);
+    await tokenBContract.approve(positionManagerAddress, amountB);
 
-    // Connect to the Position Manager
-    const positionManager = await ethers.getContractAt('INonfungiblePositionManager', positionManagerAddress);
+    console.log('Approved the position manager to spend TTN and TT2.');
+
+    // Initialize the pool with the desired price if it's not already initialized
+    const initialPrice = ethers.utils.parseUnits('2', 18); // Set initial price (e.g., 2 TT2 per TTN)
+    await positionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, feeTier, initialPrice);
+
+    console.log('Initialized pool if necessary.');
 
     // Add liquidity to the pool
     const tx = await positionManager.mint({
@@ -36,12 +51,13 @@ async function addLiquidity() {
       tickUpper: tickUpper,
       amount0Desired: amountA,
       amount1Desired: amountB,
-      amount0Min: 0,
-      amount1Min: 0,
+      amount0Min: ethers.utils.parseUnits('9', 18), // Minimum to avoid slippage
+      amount1Min: ethers.utils.parseUnits('18', 18), // Minimum to avoid slippage
       recipient: deployer.address,
       deadline: Math.floor(Date.now() / 1000) + 60 * 10 // 10 minutes from now
     });
 
+    // Wait for the transaction to be confirmed
     const receipt = await tx.wait();
     console.log('Liquidity added successfully. Transaction Hash:', receipt.transactionHash);
   } catch (error) {
@@ -49,6 +65,9 @@ async function addLiquidity() {
   }
 }
 
-addLiquidity()
-  .then(() => console.log('Add liquidity script completed'))
-  .catch((error) => console.error('Error:', error));
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
