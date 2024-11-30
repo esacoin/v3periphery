@@ -3,8 +3,8 @@ require('dotenv').config();
 const { ethers } = require('hardhat');
 
 // Token addresses and other necessary details for initializing the pool
-const tokenA = '0x7e6D75B1A8Bd04778387DFb7063D192F835D084e'; // Address of Token A
-const tokenB = '0x8CB4c1B4094e58Ff8a071421c7d1cf87daA1BCDe'; // Address of Token B
+const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // TTN
+const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // TT2
 const feeTier = 500; // Fee tier for the pool (e.g., 500 for 0.05%)
 const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // Address of deployed Nonfungible Position Manager
 
