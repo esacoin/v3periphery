@@ -25,12 +25,24 @@ async function main() {
       // Connect to the Nonfungible Position Manager contract
       const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // Replace with your Position Manager address
       const positionManager = await ethers.getContractAt('INonfungiblePositionManager', positionManagerAddress);
+      console.log('positionManager fetched');
 
-      // Set the initial price of Token A in terms of Token B (e.g., 2 Token B per Token A)
-      const initialPrice = ethers.utils.parseUnits('2', 18);
+      // Approve tokens to be spent by the position manager
+      const tokenAContract = await ethers.getContractAt('IERC20', tokenA);
+      const tokenBContract = await ethers.getContractAt('IERC20', tokenB);
+      console.log('tokens contracts fetched');
+
+      await tokenAContract.approve(positionManagerAddress, ethers.utils.parseUnits('1000', 18));
+      await tokenBContract.approve(positionManagerAddress, ethers.utils.parseUnits('1000', 18));
+      console.log('Approved the position manager to spend Token A and Token B.');
+
+      // Set the initial price of Token A in terms of Token B (e.g., 0.5 Token B per Token A)
+      const initialPrice = ethers.utils.parseUnits('0.5', 18);
 
       // Create and initialize the pool if it does not exist
-      const tx = await positionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, feeTier, initialPrice);
+      const tx = await positionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, feeTier, initialPrice, {
+        gasLimit: 500000,
+      });
       await tx.wait();
       console.log('Pool created and initialized successfully.');
     } else {
