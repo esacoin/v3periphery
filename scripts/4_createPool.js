@@ -4,6 +4,7 @@ const { ethers } = require('hardhat');
 
 // Token addresses and other necessary details for creating a pool
 const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // Nonfungible Position Manager address
+const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Factory address
 const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // Address of Token A (TTN)
 const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // Address of Token B (TT2)
 const feeTier = 500; // Fee tier for the pool (e.g., 500 for 0.05%)
@@ -15,6 +16,16 @@ async function main() {
   console.log('Creating and initializing pool with the account:', deployer.address);
 
   try {
+    // Connect to the Uniswap V3 Factory contract
+    const factoryContract = await ethers.getContractAt('IUniswapV3Factory', factoryAddress);
+
+    // Check if the pool already exists
+    const poolAddress = await factoryContract.getPool(tokenA, tokenB, feeTier);
+    if (poolAddress !== ethers.constants.AddressZero) {
+      console.log('Pool already exists at address:', poolAddress);
+      return; // Exit if the pool already exists
+    }
+
     // Connect to the Nonfungible Position Manager contract
     const positionManager = await ethers.getContractAt('INonfungiblePositionManager', positionManagerAddress);
 
