@@ -44,10 +44,25 @@ async function main() {
       const initialPrice = ethers.utils.parseUnits('0.5', 18);
       console.log('Setting initial price of pool:', initialPrice.toString());
 
+      // Estimate gas for creating and initializing the pool
+      const gasEstimate = await positionManager.estimateGas.createAndInitializePoolIfNecessary(
+        tokenA,
+        tokenB,
+        feeTier,
+        initialPrice
+      );
+      console.log('Estimated gas for creating and initializing pool:', gasEstimate.toString());
+
       // Create and initialize the pool if it does not exist
-      const tx = await positionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, feeTier, initialPrice, {
-        gasLimit: 500000000, // Increase gas limit
-      });
+      const tx = await positionManager.createAndInitializePoolIfNecessary(
+        tokenA,
+        tokenB,
+        feeTier,
+        initialPrice,
+        {
+          gasLimit: gasEstimate.mul(2), // Setting the gas limit higher than the estimate for safety
+        }
+      );
       await tx.wait();
       console.log('Pool created and initialized successfully.');
     } else {
