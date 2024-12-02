@@ -46,7 +46,7 @@ async function main() {
 
       // Create and initialize the pool if it does not exist
       const tx = await positionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, feeTier, initialPrice, {
-        gasLimit: 1000000,
+        gasLimit: 2500000,
       });
       await tx.wait();
       console.log('Pool created and initialized successfully.');
