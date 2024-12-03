@@ -36,12 +36,6 @@ async function main() {
 
     console.log('Approved the position manager to spend TTN and TT2.');
 
-    // Initialize the pool with the desired price if it's not already initialized
-    const initialPrice = ethers.utils.parseUnits('2', 18); // Set initial price (e.g., 2 TT2 per TTN)
-    await positionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, feeTier, initialPrice);
-
-    console.log('Initialized pool if necessary.');
-
     // Add liquidity to the pool
     const tx = await positionManager.mint({
       token0: tokenA,
