@@ -62,6 +62,17 @@ async function main() {
     const sqrtPriceX96 = slot0.sqrtPriceX96;
     console.log('Current sqrtPriceX96:', sqrtPriceX96.toString());
 
+    const price = sqrtPriceX96.pow(2).div(ethers.BigNumber.from(2).pow(192));
+    console.log('Current Price:', price.toString());
+
+    // Adjust tick values based on the current sqrtPriceX96
+    const TickMath = require('@uniswap/v3-sdk').TickMath;
+    const tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
+    const tickSpacing = 10; // Ensure that your fee tier's tick spacing is considered (10 for 0.05%)
+    const tickLower = Math.floor(tickCurrent / tickSpacing) * tickSpacing - 20 * tickSpacing;
+    const tickUpper = Math.floor(tickCurrent / tickSpacing) * tickSpacing + 20 * tickSpacing;
+    console.log(`Adjusted tick range: ${tickLower} to ${tickUpper}`);
+
     // Sort the token amounts to match token0 and token1
     let amount0Desired, amount1Desired;
     if (tokenA === token0) {
