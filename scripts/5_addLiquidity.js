@@ -56,6 +56,11 @@ async function main() {
     const poolContract = await ethers.getContractAt('IUniswapV3Pool', poolAddress);
     const token0 = await poolContract.token0();
     const token1 = await poolContract.token1();
+    
+    // Fetch current pool state
+    const slot0 = await poolContract.slot0();
+    const sqrtPriceX96 = slot0.sqrtPriceX96;
+    console.log('Current sqrtPriceX96:', sqrtPriceX96.toString());
 
     // Sort the token amounts to match token0 and token1
     let amount0Desired, amount1Desired;
