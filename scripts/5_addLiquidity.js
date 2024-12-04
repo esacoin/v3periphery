@@ -31,24 +31,49 @@ async function main() {
     const tokenAContract = await ethers.getContractAt('IERC20', tokenA);
     const tokenBContract = await ethers.getContractAt('IERC20', tokenB);
 
-    await tokenAContract.approve(positionManagerAddress, amountA);
-    await tokenBContract.approve(positionManagerAddress, amountB);
+    await (await tokenAContract.approve(positionManagerAddress, amountA)).wait();
+    await (await tokenBContract.approve(positionManagerAddress, amountB)).wait();
 
     console.log('Approved the position manager to spend TTN and TT2.');
 
+    // Fetch the pool address from the factory
+    const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Replace with your Factory address
+    const factoryContract = await ethers.getContractAt('IUniswapV3Factory', factoryAddress);
+    const poolAddress = await factoryContract.getPool(tokenA, tokenB, feeTier);
+    if (poolAddress === ethers.constants.AddressZero) {
+      throw new Error('Pool does not exist');
+    }
+
+    // Fetch token0 and token1 from the pool
+    const poolContract = await ethers.getContractAt('IUniswapV3Pool', poolAddress);
+    const token0 = await poolContract.token0();
+    const token1 = await poolContract.token1();
+
+    // Sort the token amounts to match token0 and token1
+    let amount0Desired, amount1Desired;
+    if (tokenA === token0) {
+      amount0Desired = amountA;
+      amount1Desired = amountB;
+    } else {
+      amount0Desired = amountB;
+      amount1Desired = amountA;
+    }
+
     // Add liquidity to the pool
     const tx = await positionManager.mint({
-      token0: tokenA,
-      token1: tokenB,
+      token0,
+      token1,
       fee: feeTier,
       tickLower: tickLower,
       tickUpper: tickUpper,
-      amount0Desired: amountA,
-      amount1Desired: amountB,
+      amount0Desired,
+      amount1Desired,
       amount0Min: ethers.utils.parseUnits('9', 18), // Minimum to avoid slippage
       amount1Min: ethers.utils.parseUnits('18', 18), // Minimum to avoid slippage
       recipient: deployer.address,
       deadline: Math.floor(Date.now() / 1000) + 60 * 10 // 10 minutes from now
+    }, {
+      gasLimit: 2000000, // Set a reasonable gas limit
     });
 
     // Wait for the transaction to be confirmed
