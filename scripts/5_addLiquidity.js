@@ -12,8 +12,8 @@ const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // 
 const feeTier = 500;
 
 // Tick ranges for the pool, adjusted based on the desired price ratio (e.g., 1 TTN = 2 TT2)
-const tickLower = -5000; // Approximate tick for price of 1 TT2 per TTN
-const tickUpper = 5000; // Approximate tick for price of 4 TT2 per TTN
+const tickLower = -5000; // Approximate tick for price of 1 TT2 per TTN (must be divisible by 10)
+const tickUpper = 5000; // Approximate tick for price of 4 TT2 per TTN (must be divisible by 10)
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -35,6 +35,14 @@ async function main() {
     await (await tokenBContract.approve(positionManagerAddress, amountB)).wait();
 
     console.log('Approved the position manager to spend TTN and TT2.');
+
+    // Check balances to ensure sufficient funds are available
+    const balanceA = await tokenAContract.balanceOf(deployer.address);
+    const balanceB = await tokenBContract.balanceOf(deployer.address);
+
+    if (balanceA.lt(amountA) || balanceB.lt(amountB)) {
+      throw new Error('Insufficient token balance for liquidity provision');
+    }
 
     // Fetch the pool address from the factory
     const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Replace with your Factory address
@@ -59,6 +67,13 @@ async function main() {
       amount1Desired = amountA;
     }
 
+    // Set more flexible minimums to avoid slippage reverts
+    const amount0Min = ethers.utils.parseUnits('8', 18);
+    const amount1Min = ethers.utils.parseUnits('15', 18);
+
+    // Set a longer deadline
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from now
+
     // Add liquidity to the pool
     const tx = await positionManager.mint({
       token0,
@@ -68,12 +83,13 @@ async function main() {
       tickUpper: tickUpper,
       amount0Desired,
       amount1Desired,
-      amount0Min: ethers.utils.parseUnits('9', 18), // Minimum to avoid slippage
-      amount1Min: ethers.utils.parseUnits('18', 18), // Minimum to avoid slippage
+      amount0Min,
+      amount1Min,
       recipient: deployer.address,
-      deadline: Math.floor(Date.now() / 1000) + 60 * 10 // 10 minutes from now
+      deadline,
     }, {
-      gasLimit: 2000000, // Set a reasonable gas limit
+      gasLimit: 3000000, // Set a higher gas limit to avoid underestimating
+      gasPrice: ethers.utils.parseUnits('20', 'gwei'), // Set a reasonable gas price
     });
 
     // Wait for the transaction to be confirmed
