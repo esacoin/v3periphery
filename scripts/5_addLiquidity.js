@@ -12,8 +12,8 @@ const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // 
 const feeTier = 500;
 
 // Tick ranges for the pool, adjusted based on the desired price ratio (e.g., 1 TTN = 2 TT2)
-const tickLower = -276330; // Approximate tick for price of 1 TT2 per TTN
-const tickUpper = 276330; // Approximate tick for price of 4 TT2 per TTN
+const tickLower = -5000; // Approximate tick for price of 1 TT2 per TTN
+const tickUpper = 5000; // Approximate tick for price of 4 TT2 per TTN
 
 async function main() {
   const [deployer] = await ethers.getSigners();
