@@ -32,9 +32,9 @@ async function main() {
 
     // Step 2: Initialize the Pool with Initial Price
     // Calculate sqrtPriceX96 for price ratio of 0.5
-    const price = 0.5;
-    const sqrtPrice = Math.sqrt(price);
-    const sqrtPriceX96 = ethers.utils.parseUnits(sqrtPrice.toString(), 96);
+    const price = ethers.utils.parseUnits('0.5', 18); // Use 18 decimals for precision
+    const sqrtPrice = price.sqrt(); // Get the square root of the price as a BigNumber
+    const sqrtPriceX96 = sqrtPrice.mul(ethers.BigNumber.from(2).pow(96)); // Multiply by 2^96 to get sqrtPriceX96
 
     console.log('Initializing pool with initial price:', sqrtPriceX96.toString());
 
