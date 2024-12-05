@@ -3,7 +3,7 @@ const { ethers } = require('hardhat');
 const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Replace with your Factory address
 const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // Replace with Token A address
 const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // Replace with Token B address
-const feeTier = 500; // Fee tier
+const feeTier = 3000; // Use a different fee tier (0.3%)
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -31,7 +31,7 @@ async function main() {
     }
 
     // Step 2: Initialize the Pool with Initial Price
-    const initialPrice = ethers.utils.parseUnits('0.5', 18); // Set the initial price in sqrtPriceX96 format
+    const initialPrice = Math.floor(Math.sqrt(0.5) * Math.pow(2, 96)); // Calculate sqrtPriceX96 for price ratio of 0.5
     console.log('Initializing pool with initial price:', initialPrice.toString());
 
     const poolContract = await ethers.getContractAt('IUniswapV3Pool', poolAddress);
