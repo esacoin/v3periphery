@@ -31,11 +31,15 @@ async function main() {
     }
 
     // Step 2: Initialize the Pool with Initial Price
-    const initialPrice = ethers.BigNumber.from((Math.sqrt(0.5) * Math.pow(2, 96)).toFixed(0)); // Calculate sqrtPriceX96 for price ratio of 0.5
-    console.log('Initializing pool with initial price:', initialPrice.toString());
+    // Calculate sqrtPriceX96 for price ratio of 0.5
+    const price = 0.5;
+    const sqrtPrice = Math.sqrt(price);
+    const sqrtPriceX96 = ethers.utils.parseUnits(sqrtPrice.toString(), 96);
+
+    console.log('Initializing pool with initial price:', sqrtPriceX96.toString());
 
     const poolContract = await ethers.getContractAt('IUniswapV3Pool', poolAddress);
-    const initializeTx = await poolContract.initialize(initialPrice, {
+    const initializeTx = await poolContract.initialize(sqrtPriceX96, {
       gasLimit: 1500000, // Set a separate reasonable gas limit for initialization
     });
     await initializeTx.wait();
