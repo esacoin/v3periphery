@@ -31,7 +31,7 @@ async function main() {
     }
 
     // Step 2: Initialize the Pool with Initial Price
-    const initialPrice = Math.floor(Math.sqrt(0.5) * Math.pow(2, 96)); // Calculate sqrtPriceX96 for price ratio of 0.5
+    const initialPrice = ethers.BigNumber.from(Math.floor(Math.sqrt(0.5) * Math.pow(2, 96)).toString());
     console.log('Initializing pool with initial price:', initialPrice.toString());
 
     const poolContract = await ethers.getContractAt('IUniswapV3Pool', poolAddress);
