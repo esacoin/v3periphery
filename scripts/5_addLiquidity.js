@@ -12,8 +12,8 @@ const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // 
 const feeTier = 3000;
 
 // Tick ranges for the pool, adjusted based on the desired price ratio (e.g., 1 TTN = 2 TT2)
-const tickLower = -50000; // Approximate tick for price of 1 TT2 per TTN (must be divisible by 10)
-const tickUpper = 50000; // Approximate tick for price of 4 TT2 per TTN (must be divisible by 10)
+const tickLower = -60000; // Approximate tick for price of 1 TT2 per TTN (must be divisible by 10)
+const tickUpper = 60000; // Approximate tick for price of 4 TT2 per TTN (must be divisible by 10)
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -74,14 +74,6 @@ async function main() {
     const price = ethers.utils.formatUnits(priceScaled, 18); // 18 decimals
 
     console.log("Current Price (decimal):", price);
-
-    // Adjust tick values based on the current sqrtPriceX96
-    const TickMath = require('@uniswap/v3-sdk').TickMath;
-    const tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
-    const tickSpacing = 60; // Ensure that your fee tier's tick spacing is considered (10 for 0.05%)
-    const tickLower = Math.floor(tickCurrent / tickSpacing) * tickSpacing - 20 * tickSpacing;
-    const tickUpper = Math.floor(tickCurrent / tickSpacing) * tickSpacing + 20 * tickSpacing;
-    console.log(`Adjusted tick range: ${tickLower} to ${tickUpper}`);
 
     // Sort the token amounts to match token0 and token1
     let amount0Desired, amount1Desired;
