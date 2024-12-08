@@ -62,12 +62,18 @@ async function main() {
     const sqrtPriceX96 = slot0.sqrtPriceX96;
     console.log('Current sqrtPriceX96:', sqrtPriceX96.toString());
 
-    const numerator = sqrtPriceX96.pow(2);
-    const denominator = ethers.BigNumber.from(2).pow(192);
-    
-    // To get a floating-point approximation:
-    const priceAsNumber = Number(numerator.mul(1e18).div(denominator)) / 1e18;
-    console.log("Current Price (decimal):", priceAsNumber);
+    // Display the current price as a decimal for debugging
+    const numerator = sqrtPriceX96.mul(sqrtPriceX96); // sqrtPriceX96 squared
+    const denominator = ethers.BigNumber.from(2).pow(192); // 2^192
+
+    // Correct scaling using ethers.utils.parseUnits
+    const scale = ethers.utils.parseUnits('1', 18); // 1e18 as a BigNumber
+    const priceScaled = numerator.mul(scale).div(denominator);
+
+    // Convert the scaled price to a human-readable decimal string
+    const price = ethers.utils.formatUnits(priceScaled, 18); // 18 decimals
+
+    console.log("Current Price (decimal):", price);
 
     // Adjust tick values based on the current sqrtPriceX96
     const TickMath = require('@uniswap/v3-sdk').TickMath;
