@@ -72,7 +72,7 @@ async function main() {
     // Adjust tick values based on the current sqrtPriceX96
     const TickMath = require('@uniswap/v3-sdk').TickMath;
     const tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
-    const tickSpacing = 10; // Ensure that your fee tier's tick spacing is considered (10 for 0.05%)
+    const tickSpacing = 60; // Ensure that your fee tier's tick spacing is considered (10 for 0.05%)
     const tickLower = Math.floor(tickCurrent / tickSpacing) * tickSpacing - 20 * tickSpacing;
     const tickUpper = Math.floor(tickCurrent / tickSpacing) * tickSpacing + 20 * tickSpacing;
     console.log(`Adjusted tick range: ${tickLower} to ${tickUpper}`);
