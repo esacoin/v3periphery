@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { ethers } = require('hardhat');
 
-const poolAddress = '0x46CB950532B2C7f0A9ddA09146664A4A94e9F178'; // Use the retrieved pool address here
+const poolAddress = '0x289d013e3EFf82320DAc930cCdF39fE979D0b10b'; // Use the retrieved pool address here
 
 async function verifyLiquidity() {
   const [deployer] = await ethers.getSigners();
