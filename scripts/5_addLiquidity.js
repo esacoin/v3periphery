@@ -49,11 +49,12 @@ async function main() {
   // Contract Instances
   // ---------------------------
   
-  // Interface Definitions
+  // Updated IERC20_ABI to include 'allowance'
   const IERC20_ABI = [
     'function approve(address spender, uint256 amount) external returns (bool)',
     'function balanceOf(address account) external view returns (uint256)',
     'function decimals() external view returns (uint8)',
+    'function allowance(address owner, address spender) external view returns (uint256)',
   ];
   
   const IUniswapV3Factory_ABI = [
@@ -305,8 +306,8 @@ async function main() {
     console.log(`Liquidity Position Token ID: ${tokenId}`);
     console.log(`Liquidity Added: ${liquidity.toString()}`);
     console.log(`Amount0 Used: ${formatAmount(amount0, decimalsA)}`);
-    console.log(`Amount1 Used: ${formatAmount(amount1, decimalsB)}`);
-    
+    console.log(`Amount1 Used: ${formatAmount(amount1, decimalsB)}`); 
+       
   } catch (error) {
     console.error('--- Error Encountered ---');
     console.error(error);
