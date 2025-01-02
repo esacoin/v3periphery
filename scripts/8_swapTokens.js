@@ -4,9 +4,15 @@ const { ethers } = require('hardhat');
 
 // Define key addresses and contract addresses
 const swapRouterAddress = '0x0e25d9e279426d5FEd0dD258cDCD9ffbBaF04C57'; // Replace with your swap router address (e.g., Uniswap V3 router)
-const tokenA = '0x7e6D75B1A8Bd04778387DFb7063D192F835D084e'; // Address of Token A (Holon)
-const tokenB = '0x8CB4c1B4094e58Ff8a071421c7d1cf87daA1BCDe'; // Address of Token B (Hether)
+
+ // Token Addresses
+ const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // TTN
+ const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // TT2
+
 const amountIn = ethers.utils.parseUnits('1', 18); // Amount of Token A to swap (e.g., 100 tokens)
+
+// Fee Tier for the Pool (e.g., 3000 for 0.3%)
+const feeTier = 3000;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -29,7 +35,7 @@ async function main() {
   const params = {
     tokenIn: tokenA,
     tokenOut: tokenB,
-    fee: 500, // Fee tier of the pool, e.g., 0.05% fee
+    fee: feeTier, // Fee tier of the pool, e.g., 0.05% fee
     recipient: deployer.address,
     deadline: Math.floor(Date.now() / 1000) + 60 * 10, // 10 minutes from now
     amountIn: amountIn,
