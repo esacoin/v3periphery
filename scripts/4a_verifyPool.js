@@ -4,8 +4,8 @@ const { ethers } = require('hardhat');
 
 // Token addresses and other necessary details for verifying the pool
 const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Replace with your Factory address
-const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // Replace with Token A address
-const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // Replace with Token B address
+const tokenA = '0xcDbBC3fC0466f35D102441E2216A5888A54Cb372'; // EsaCoin Token
+const tokenB = '0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C'; // Wrapped ESA WESA
 const feeTier = 3000; // Fee tier for the pool (e.g., 500 for 0.05%)
 
 async function main() {

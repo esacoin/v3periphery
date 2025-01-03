@@ -8,8 +8,8 @@ async function main() {
   // ---------------------------
 
   // Token Addresses
-  const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // TTN
-  const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // TT2
+  const tokenA = '0xcDbBC3fC0466f35D102441E2216A5888A54Cb372'; // EsaCoin Token
+  const tokenB = '0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C'; // Wrapped ESA WESA
 
   // Nonfungible Position Manager Address
   const positionManagerAddress = '0x9875eE1A8be25ca95164914a148dC04126ad1684'; // Update as needed

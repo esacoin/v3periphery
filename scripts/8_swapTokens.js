@@ -6,8 +6,8 @@ const { ethers } = require('hardhat');
 const swapRouterAddress = '0x0e25d9e279426d5FEd0dD258cDCD9ffbBaF04C57'; // Replace with your swap router address (e.g., Uniswap V3 router)
 
  // Token Addresses
- const tokenA = '0x6353d130520CC2b803F224Ad515A40Fa59e968F3'; // TTN
- const tokenB = '0x5964c3B17dA46f239B305d559B2A4Ff2505F6928'; // TT2
+ const tokenA = '0xcDbBC3fC0466f35D102441E2216A5888A54Cb372'; // EsaCoin Token
+ const tokenB = '0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C'; // Wrapped ESA WESA
 
 const amountIn = ethers.utils.parseUnits('1', 18); // Amount of Token A to swap (e.g., 100 tokens)
 
