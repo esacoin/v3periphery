@@ -1,20 +1,16 @@
 const { ethers } = require('hardhat');
 
-const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Factory address
-const tokenA = '0xcDbBC3fC0466f35D102441E2216A5888A54Cb372'; // EsaCoin
-const tokenB = '0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C'; // WESA
-const feeTier = 3000;
+const factoryAddress = '0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475'; // Replace with your Factory address
+const tokenA = '0xcDbBC3fC0466f35D102441E2216A5888A54Cb372'; // EsaCoin Token
+const tokenB = '0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C'; // Wrapped ESA WESA
+const feeTier = 3000; // Example fee tier (0.3%)
 
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log('Using deployer account:', deployer.address);
 
   try {
-    // Step 1: Verify deployer balance
-    const balance = await deployer.getBalance();
-    console.log('Deployer balance:', ethers.utils.formatEther(balance));
-
-    // Step 2: Reference the Uniswap V3 Factory Contract
+    // Step 1: Reference the Uniswap V3 Factory Contract
     const factoryContract = await ethers.getContractAt('IUniswapV3Factory', factoryAddress);
 
     // Check if the pool already exists
@@ -24,14 +20,15 @@ async function main() {
     if (poolAddress === ethers.constants.AddressZero) {
       console.log('No pool found, creating a new pool...');
 
-      // Create the pool with additional gas settings
+      // Create the pool using the Factory contract
       const createTx = await factoryContract.createPool(tokenA, tokenB, feeTier, {
-        gasLimit: 3000000,
-        gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+        gasLimit: 5000000, // Increased gas limit
+        gasPrice: ethers.utils.parseUnits('20', 'gwei'), // Increased gas price
       });
-      console.log('Create pool transaction sent, waiting for confirmation...');
-      await createTx.wait();
-      console.log('Pool created successfully.');
+      console.log('Create pool transaction sent, tx hash:', createTx.hash);
+
+      const receipt = await createTx.wait();
+      console.log('Transaction receipt:', receipt);
 
       // Fetch the newly created pool address
       poolAddress = await factoryContract.getPool(tokenA, tokenB, feeTier);
@@ -40,7 +37,9 @@ async function main() {
       console.log('Pool already exists at address:', poolAddress);
     }
 
-    // Step 3: Initialize the Pool
+    // Step 2: Initialize the Pool with an Initial Price
+    // The initial price is represented as sqrt(price) * 2^96.
+    // For example, if the desired price is 0.5 (tokenB per tokenA), we need sqrt(0.5).
     const targetPrice = 0.5;
     const sqrtPrice = Math.sqrt(targetPrice); // ~0.707106781...
 
@@ -51,13 +50,17 @@ async function main() {
 
     console.log('Initializing pool with initial price:', initialPrice.toString());
 
+    // Interact with the newly created pool
     const poolContract = await ethers.getContractAt('IUniswapV3Pool', poolAddress);
     const initializeTx = await poolContract.initialize(initialPrice, {
-      gasLimit: 3000000,
-      gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+      gasLimit: 5000000,
+      gasPrice: ethers.utils.parseUnits('20', 'gwei'),
     });
-    console.log('Initialize transaction sent, waiting for confirmation...');
-    await initializeTx.wait();
+    console.log('Initialize transaction sent, tx hash:', initializeTx.hash);
+
+    const initializeReceipt = await initializeTx.wait();
+    console.log('Initialize transaction receipt:', initializeReceipt);
+
     console.log('Pool initialized successfully.');
   } catch (error) {
     console.error('Error during pool creation or initialization:', error);
@@ -68,6 +71,6 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch(error => {
-    console.error('Unhandled error:', error);
+    console.error(error);
     process.exit(1);
   });
