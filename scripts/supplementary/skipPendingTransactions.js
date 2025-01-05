@@ -20,38 +20,35 @@ async function main() {
   const newGasPrice = ethers.utils.parseUnits("50", "gwei"); // Higher gas price
   const chainId = (await provider.getNetwork()).chainId; // Automatically fetch chain ID
 
-  // List of nonces to replace (only pending ones)
-  const nonces = [148, 149];
+  const nonce = 149; // Replace nonce 149
 
   try {
-    for (const nonce of nonces) {
-      console.log(`Replacing transaction with nonce ${nonce}...`);
+    console.log(`Replacing transaction with nonce ${nonce}...`);
 
-      const tx = {
-        nonce, // Set the nonce to replace the transaction
-        to: factoryAddress,
-        gasLimit, // Ensure gasLimit is properly formatted
-        gasPrice: newGasPrice,
-        value: "0x0", // Set to 0x0 in hex
-        data: "0x", // Assuming no specific calldata
-        chainId, // Add chain ID for replay protection
-      };
+    const tx = {
+      nonce, // Set the nonce to replace the transaction
+      to: factoryAddress,
+      gasLimit, // Ensure gasLimit is properly formatted
+      gasPrice: newGasPrice,
+      value: "0x0", // Set to 0x0 in hex
+      data: "0x", // Assuming no specific calldata
+      chainId, // Add chain ID for replay protection
+    };
 
-      console.log(`Signing transaction with nonce ${nonce}...`);
+    console.log(`Signing transaction with nonce ${nonce}...`);
 
-      // Sign and send the transaction
-      const signedTx = await deployer.signTransaction(tx);
-      console.log(`Signed transaction: ${signedTx}`);
+    // Sign and send the transaction
+    const signedTx = await deployer.signTransaction(tx);
+    console.log(`Signed transaction: ${signedTx}`);
 
-      const txResponse = await provider.sendTransaction(signedTx);
-      console.log(`Replacement transaction sent for nonce ${nonce}, tx hash: ${txResponse.hash}`);
+    const txResponse = await provider.sendTransaction(signedTx);
+    console.log(`Replacement transaction sent for nonce ${nonce}, tx hash: ${txResponse.hash}`);
 
-      console.log("Waiting for transaction to be mined...");
-      const receipt = await txResponse.wait();
-      console.log(`Transaction with nonce ${nonce} replaced and mined successfully. Receipt:`, receipt);
-    }
+    console.log("Waiting for transaction to be mined...");
+    const receipt = await txResponse.wait();
+    console.log(`Transaction with nonce ${nonce} replaced and mined successfully. Receipt:`, receipt);
   } catch (error) {
-    console.error("Error replacing transactions:", error);
+    console.error("Error replacing transaction for nonce 149:", error);
   }
 }
 
