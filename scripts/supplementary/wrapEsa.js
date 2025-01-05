@@ -1,13 +1,24 @@
+require("dotenv").config(); // Load environment variables from .env
 const { ethers } = require("hardhat");
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  console.log("Deployer Address:", deployer.address);
+  const provider = ethers.provider;
 
-  const wesaAddress = "0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C"; // Replace with your WESA contract address
-  const amountToWrap = ethers.utils.parseEther("20"); // Amount of ESA to wrap (20 ESA)
+    // Load private key from environment variable
+    const privateKey = process.env.COPPER_PRIVATE_KEY;
+    if (!privateKey) {
+        console.error("COPPER_PRIVATE_KEY not found in environment variables.");
+        process.exit(1);
+    }
 
-  // Attach to the WESA contract
+  const deployer = new ethers.Wallet(privateKey, provider);
+
+  const nonce = 152; // Replace with the nonce of the pending transaction
+  const gasPrice = ethers.utils.parseUnits("60", "gwei"); // Higher gas price
+
+  const wesaAddress = "0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C"; // Replace with WESA contract address
+  const amountToWrap = ethers.utils.parseEther("20"); // Replace with the desired ESA amount
+
   const wesa = await ethers.getContractAt(
     [
       {
@@ -17,42 +28,33 @@ async function main() {
         "stateMutability": "payable",
         "type": "function",
       },
-      {
-        "inputs": [],
-        "name": "withdraw",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function",
-      },
-      {
-        "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
-        "name": "balanceOf",
-        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-        "stateMutability": "view",
-        "type": "function",
-      },
     ],
     wesaAddress
   );
 
-  // Deposit ESA to mint WESA
-  const tx = await wesa.deposit({
-    value: amountToWrap, // Send native ESA
-  });
-  console.log("Transaction Sent:", tx.hash);
+  console.log("Replacing transaction with nonce:", nonce);
 
-  // Wait for confirmation
-  await tx.wait();
-  console.log("Successfully wrapped ESA into WESA.");
+  try {
+    const tx = await wesa.connect(deployer).deposit({
+      value: amountToWrap,
+      gasLimit: ethers.utils.hexlify(300000),
+      gasPrice: gasPrice,
+      nonce: nonce, // Ensure the nonce matches the pending transaction
+    });
 
-  // Check WESA balance
-  const wesaBalance = await wesa.balanceOf(deployer.address);
-  console.log("WESA Balance:", ethers.utils.formatEther(wesaBalance));
+    console.log("Replacement transaction sent with hash:", tx.hash);
+    console.log("Waiting for confirmation...");
+    const receipt = await tx.wait();
+
+    console.log("Transaction replaced successfully. Receipt:", receipt);
+  } catch (error) {
+    console.error("Error replacing the transaction:", error);
+  }
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error("Error wrapping ESA into WESA:", error);
+    console.error(error);
     process.exit(1);
   });
