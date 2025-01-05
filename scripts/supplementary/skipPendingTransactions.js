@@ -18,6 +18,7 @@ async function main() {
   const factoryAddress = "0xF0f274EA0ad60FA7d75490f0Da58fF710ADea475"; // Replace with your factory address
   const gasLimit = 3000000; // Adjust if needed
   const newGasPrice = ethers.utils.parseUnits("50", "gwei"); // Higher gas price
+  const chainId = (await provider.getNetwork()).chainId; // Automatically fetch chain ID
 
   // List of nonces to replace
   const nonces = [147, 148, 149];
@@ -33,6 +34,7 @@ async function main() {
         gasPrice: newGasPrice,
         value: 0, // No value transfer
         data: "0x", // Assuming no specific calldata; adjust if needed
+        chainId, // Add chain ID for replay protection
       };
 
       console.log(`Sending transaction with nonce ${nonce} at ${newGasPrice.toString()} gas price...`);
