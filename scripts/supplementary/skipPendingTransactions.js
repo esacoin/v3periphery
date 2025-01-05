@@ -1,8 +1,17 @@
+require("dotenv").config(); // Load environment variables from .env
 const { ethers } = require("hardhat");
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  const provider = ethers.provider;
 
+  // Load private key from environment variable
+  const privateKey = process.env.COPPER_PRIVATE_KEY;
+  if (!privateKey) {
+    console.error("COPPER_PRIVATE_KEY not found in environment variables.");
+    process.exit(1);
+  }
+
+  const deployer = new ethers.Wallet(privateKey, provider);
   console.log("Using deployer account:", deployer.address);
 
   // Define the common transaction details
@@ -30,11 +39,11 @@ async function main() {
 
       // Sign and send the transaction
       const signedTx = await deployer.signTransaction(tx);
-      const txHash = await ethers.provider.sendTransaction(signedTx);
+      const txHash = await provider.sendTransaction(signedTx);
 
       console.log(`Replacement transaction sent for nonce ${nonce}: ${txHash}`);
       console.log("Waiting for transaction to be mined...");
-      await ethers.provider.waitForTransaction(txHash);
+      await provider.waitForTransaction(txHash);
 
       console.log(`Transaction with nonce ${nonce} replaced and mined successfully.`);
     }
