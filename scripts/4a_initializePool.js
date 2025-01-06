@@ -30,6 +30,7 @@ async function createOrInitializePool() {
     tokenB,
     feeTier,
     sqrtPriceX96,
+    nonce: 157,
     {
       // for EIP-1559 networks:
       maxFeePerGas: ethers.utils.parseUnits("60", "gwei"),
