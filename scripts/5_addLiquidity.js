@@ -14,7 +14,7 @@ async function main() {
   const tickLower = -60000;
   const tickUpper = 60000;
   const amountADesired = ethers.utils.parseEther('10'); // 10 TTN
-  const amountBDesired = ethers.utils.parseEther('10'); // 20 TT2
+  const amountBDesired = ethers.utils.parseEther('10'); // 10 TT2
   const slippage = 10; // 10%
   const deadline = Math.floor(Date.now() / 1000) + 20 * 60; // 20 minutes
   const gasPrice = ethers.utils.parseUnits('20', 'gwei');
@@ -120,7 +120,12 @@ async function main() {
     // 5. Estimate Gas
     let estimatedGas;
     try {
-      console.log('Estimating gas...');
+      console.log('Estimating gas with params:', {
+        mintParams,
+        transactionOptions: {
+          gasPrice,
+        },
+      });
       estimatedGas = await positionManager.estimateGas.mint(mintParams, {
         gasPrice,
       });
