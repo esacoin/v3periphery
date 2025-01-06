@@ -36,7 +36,7 @@ async function main() {
 
   // Gas Configuration
   const gasPriceGwei = '20'; // 20 Gwei
-  const gasLimit = 5000000; // Adjust as necessary
+  const gasLimit = 8000000; // Adjust as necessary
 
   // ---------------------------
   // Initialize Signer
