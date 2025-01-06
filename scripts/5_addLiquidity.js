@@ -248,10 +248,8 @@ async function main() {
     console.log(`  Token0 Min: ${formatAmount(amount0Min, decimalsA)}`);
     console.log(`  Token1 Min: ${formatAmount(amount1Min, decimalsB)}`);
 
-    // 13. Simulate the Transaction (Optional but Recommended)
-    console.log('Simulating the liquidity addition transaction...');
-    try {
-      const simulatedTx = await positionManager.callStatic.mint({
+    const estimatedGas = await positionManager.estimateGas.mint(
+      {
         token0: sortedToken0,
         token1: sortedToken1,
         fee: feeTier,
@@ -263,34 +261,34 @@ async function main() {
         amount1Min: amount1Min,
         recipient: deployer.address,
         deadline: deadline,
-      }, {
-        gasLimit: gasLimit,
+      },
+      {
         gasPrice: ethers.utils.parseUnits(gasPriceGwei, 'gwei'),
-      });
-      console.log('Simulation successful. Transaction is likely to succeed.');
-    } catch (simulationError) {
-      console.error('Simulation failed. Transaction will likely revert.');
-      throw simulationError;
-    }
-
-    // 14. Add Liquidity
-    console.log('Sending transaction to add liquidity...');
-    const tx = await positionManager.mint({
-      token0: sortedToken0,
-      token1: sortedToken1,
-      fee: feeTier,
-      tickLower: tickLower,
-      tickUpper: tickUpper,
-      amount0Desired: amount0Desired,
-      amount1Desired: amount1Desired,
-      amount0Min: amount0Min,
-      amount1Min: amount1Min,
-      recipient: deployer.address,
-      deadline: deadline,
-    }, {
-      gasLimit: gasLimit,
-      gasPrice: ethers.utils.parseUnits(gasPriceGwei, 'gwei'),
-    });
+      }
+    );
+    
+    console.log('Estimated Gas:', estimatedGas.toString());
+    
+    const tx = await positionManager.mint(
+      {
+        token0: sortedToken0,
+        token1: sortedToken1,
+        fee: feeTier,
+        tickLower: tickLower,
+        tickUpper: tickUpper,
+        amount0Desired: amount0Desired,
+        amount1Desired: amount1Desired,
+        amount0Min: amount0Min,
+        amount1Min: amount1Min,
+        recipient: deployer.address,
+        deadline: deadline,
+      },
+      {
+        gasLimit: estimatedGas.mul(110).div(100), // Add a 10% buffer
+        gasPrice: ethers.utils.parseUnits(gasPriceGwei, 'gwei'),
+      }
+    );
+    
 
     console.log('Transaction sent. Waiting for confirmation...');
     const receipt = await tx.wait();
