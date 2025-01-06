@@ -177,9 +177,7 @@ async function main() {
     }
 
     try {
-      await positionManager.callStatic.mint(mintParams, {
-        gasPrice,
-      });
+      await positionManager.callStatic.mint(mintParams);
       console.log('Simulation successful. The transaction should succeed.');
     } catch (simulationError) {
       console.error('Simulation failed. The transaction will likely revert.');
@@ -192,9 +190,7 @@ async function main() {
     // 5. Estimate Gas
     let estimatedGas;
     try {
-      estimatedGas = await positionManager.estimateGas.mint(mintParams, {
-        gasPrice,
-      });
+      estimatedGas = await positionManager.estimateGas.mint(mintParams);
       console.log('Estimated Gas:', estimatedGas.toString());
     } catch (gasError) {
       console.error('Gas Estimation Failed:', gasError);
