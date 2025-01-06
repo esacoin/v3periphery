@@ -6,7 +6,7 @@ async function main() {
   const privateKey = process.env.COPPER_PRIVATE_KEY; // Load your private key from .env
   const deployer = new ethers.Wallet(privateKey, provider);
 
-  const nonce = 153; // Nonce of the pending transaction you want to cancel
+  const nonce = 157; // Nonce of the pending transaction you want to cancel
   const gasPrice = ethers.utils.parseUnits("50", "gwei"); // Higher gas price to prioritize this transaction
 
   const tx = {
