@@ -170,6 +170,24 @@ async function main() {
     };
 
     console.log('Mint Parameters:', mintParams);
+    for (const [key, value] of Object.entries(mintParams)) {
+      if (value === undefined) {
+        console.error(`Mint parameter "${key}" is undefined!`);
+      }
+    }
+
+    try {
+      await positionManager.callStatic.mint(mintParams, {
+        gasPrice,
+      });
+      console.log('Simulation successful. The transaction should succeed.');
+    } catch (simulationError) {
+      console.error('Simulation failed. The transaction will likely revert.');
+      console.error(simulationError);
+      throw simulationError;
+    }
+    
+    
 
     // 5. Estimate Gas
     let estimatedGas;
