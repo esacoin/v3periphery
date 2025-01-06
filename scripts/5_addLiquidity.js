@@ -13,7 +13,7 @@ async function main() {
   const tickLower = -60000;
   const tickUpper = 60000;
   const amountADesired = ethers.utils.parseEther('10'); // 10 TTN
-  const amountBDesired = ethers.utils.parseEther('10'); // 10 TT2
+  const amountBDesired = ethers.utils.parseEther('10'); // 20 TT2
   const slippage = 10; // 10%
   const deadline = Math.floor(Date.now() / 1000) + 20 * 60; // 20 minutes
   const gasPrice = ethers.utils.parseUnits('20', 'gwei');
@@ -30,6 +30,9 @@ async function main() {
     'function decimals() external view returns (uint8)',
     'function allowance(address owner, address spender) external view returns (uint256)',
   ];
+  const IUniswapV3Factory_ABI = [
+    'function getPool(address tokenA, address tokenB, uint24 fee) external view returns (address)',
+  ];
   const INonfungiblePositionManager_ABI = [
     'function mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256)) external payable returns (uint256,uint128,uint256,uint256)',
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
@@ -37,6 +40,7 @@ async function main() {
 
   const tokenAContract = await ethers.getContractAt(IERC20_ABI, tokenA);
   const tokenBContract = await ethers.getContractAt(IERC20_ABI, tokenB);
+  const factoryContract = await ethers.getContractAt(IUniswapV3Factory_ABI, factoryAddress);
   const positionManager = await ethers.getContractAt(INonfungiblePositionManager_ABI, positionManagerAddress);
 
   // ---------------------------
@@ -73,11 +77,9 @@ async function main() {
     await approveIfNeeded(tokenBContract, amountBDesired, positionManagerAddress);
 
     // 3. Validate Pool Existence
-    const poolAddress = await ethers.getContractAt(
-      ['function getPool(address,address,uint24) external view returns (address)'],
-      factoryAddress
-    ).getPool(tokenA, tokenB, feeTier);
+    const poolAddress = await factoryContract.getPool(tokenA, tokenB, feeTier);
     if (poolAddress === ethers.constants.AddressZero) throw new Error('Pool does not exist.');
+    console.log('Pool Address:', poolAddress);
 
     // 4. Prepare and Estimate Transaction
     const mintParams = {
@@ -111,6 +113,33 @@ async function main() {
     if (receipt.status !== 1) throw new Error('Transaction failed.');
 
     console.log('Liquidity added successfully. Receipt:', receipt);
+
+    // 7. Post-Transaction Verification
+    const TransferEvent = positionManager.interface.getEvent('Transfer');
+    const transferTopic = positionManager.interface.getEventTopic(TransferEvent);
+
+    const transferLogs = receipt.logs.filter((log) => log.topics[0] === transferTopic);
+    let tokenId;
+    for (const log of transferLogs) {
+      try {
+        const parsedLog = positionManager.interface.parseLog(log);
+        if (
+          parsedLog.args.from === ethers.constants.AddressZero &&
+          parsedLog.args.to.toLowerCase() === deployer.address.toLowerCase()
+        ) {
+          tokenId = parsedLog.args.tokenId;
+          break;
+        }
+      } catch (parseError) {
+        continue;
+      }
+    }
+
+    if (tokenId) {
+      console.log(`Liquidity Position Token ID: ${tokenId.toString()}`);
+    } else {
+      console.log('Transfer event not found for minting a new liquidity position.');
+    }
   } catch (error) {
     console.error('Error during liquidity addition:', error.message);
   }
