@@ -33,6 +33,14 @@ async function main() {
   const IUniswapV3Factory_ABI = [
     'function getPool(address tokenA, address tokenB, uint24 fee) external view returns (address)',
   ];
+
+  // Uniswap V3 Pool ABI
+  const IUniswapV3Pool_ABI = [
+    'function token0() external view returns (address)',
+    'function token1() external view returns (address)',
+    'function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)',
+  ];
+  
   const INonfungiblePositionManager_ABI = [
     'function mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256)) external payable returns (uint256,uint128,uint256,uint256)',
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
