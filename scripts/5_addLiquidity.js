@@ -1,3 +1,4 @@
+// Import necessary libraries and load environment variables
 require('dotenv').config();
 const { ethers } = require('hardhat');
 
@@ -33,14 +34,11 @@ async function main() {
   const IUniswapV3Factory_ABI = [
     'function getPool(address tokenA, address tokenB, uint24 fee) external view returns (address)',
   ];
-
-  // Uniswap V3 Pool ABI
   const IUniswapV3Pool_ABI = [
     'function token0() external view returns (address)',
     'function token1() external view returns (address)',
     'function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)',
   ];
-  
   const INonfungiblePositionManager_ABI = [
     'function mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256)) external payable returns (uint256,uint128,uint256,uint256)',
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
@@ -84,7 +82,7 @@ async function main() {
     await approveIfNeeded(tokenAContract, amountADesired, positionManagerAddress);
     await approveIfNeeded(tokenBContract, amountBDesired, positionManagerAddress);
 
-    // Validate Pool and Tokens
+    // 3. Validate Pool Existence
     const poolAddress = await factoryContract.getPool(tokenA, tokenB, feeTier);
     if (poolAddress === ethers.constants.AddressZero) throw new Error('Pool does not exist.');
     console.log('Pool Address:', poolAddress);
@@ -103,11 +101,7 @@ async function main() {
 
     console.log(`Sorted Tokens - Token0: ${sortedToken0}, Token1: ${sortedToken1}`);
 
-    // Validate Recipient
-    const recipient = deployer.address;
-    if (!recipient) throw new Error('Deployer address is undefined.');
-
-    // Prepare Mint Parameters
+    // 4. Prepare Mint Parameters
     const mintParams = {
       token0: sortedToken0,
       token1: sortedToken1,
@@ -118,59 +112,48 @@ async function main() {
       amount1Desired: amountBDesired,
       amount0Min: minAmount(amountADesired),
       amount1Min: minAmount(amountBDesired),
-      recipient: recipient,
+      recipient: deployer.address,
       deadline: deadline,
     };
     console.log('Mint Parameters:', mintParams);
 
-
-    console.log('Estimating gas...');
-    const estimatedGas = await positionManager.estimateGas.mint(mintParams, { gasPrice });
-    console.log('Estimated Gas:', estimatedGas.toString());
-
-    // 5. Send Mint Transaction
-    console.log('Sending mint transaction...');
-    const tx = await positionManager.mint(mintParams, {
-      gasLimit: estimatedGas.mul(110).div(100), // Add 10% buffer
-      gasPrice: gasPrice,
-    });
-    console.log('Transaction sent. Hash:', tx.hash);
-
-    // 6. Wait for Confirmation
-    const receipt = await tx.wait();
-    if (receipt.status !== 1) throw new Error('Transaction failed.');
-
-    console.log('Liquidity added successfully. Receipt:', receipt);
-
-    // 7. Post-Transaction Verification
-    const TransferEvent = positionManager.interface.getEvent('Transfer');
-    const transferTopic = positionManager.interface.getEventTopic(TransferEvent);
-
-    const transferLogs = receipt.logs.filter((log) => log.topics[0] === transferTopic);
-    let tokenId;
-    for (const log of transferLogs) {
-      try {
-        const parsedLog = positionManager.interface.parseLog(log);
-        if (
-          parsedLog.args.from === ethers.constants.AddressZero &&
-          parsedLog.args.to.toLowerCase() === deployer.address.toLowerCase()
-        ) {
-          tokenId = parsedLog.args.tokenId;
-          break;
-        }
-      } catch (parseError) {
-        continue;
-      }
+    // 5. Estimate Gas
+    let estimatedGas;
+    try {
+      console.log('Estimating gas...');
+      estimatedGas = await positionManager.estimateGas.mint(mintParams, {
+        gasPrice,
+      });
+      console.log('Estimated Gas:', estimatedGas.toString());
+    } catch (gasError) {
+      console.error('Gas Estimation Failed:', gasError);
+      throw new Error('Gas estimation failed. Check contract state or parameters.');
     }
 
-    if (tokenId) {
-      console.log(`Liquidity Position Token ID: ${tokenId.toString()}`);
-    } else {
-      console.log('Transfer event not found for minting a new liquidity position.');
+    // 6. Execute Mint Transaction
+    try {
+      console.log('Sending mint transaction...');
+      const tx = await positionManager.mint(mintParams, {
+        gasLimit: estimatedGas.mul(110).div(100), // Add 10% buffer
+        gasPrice,
+      });
+      console.log('Transaction sent. Hash:', tx.hash);
+
+      const receipt = await tx.wait();
+      if (receipt.status !== 1) throw new Error('Transaction failed.');
+      console.log('Liquidity added successfully!');
+      console.log('Transaction Hash:', receipt.transactionHash);
+    } catch (txError) {
+      console.error('Transaction Failed:', txError);
+      throw txError;
     }
   } catch (error) {
-    console.error('Error during liquidity addition:', error.message);
+    console.error('--- Error Encountered ---');
+    console.error(error);
+    process.exit(1);
   }
+
+  console.log('--- Liquidity Addition Process Completed ---');
 }
 
 main()
