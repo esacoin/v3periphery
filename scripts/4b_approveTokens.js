@@ -27,7 +27,7 @@ async function main() {
   const tokenBAddress = "0xe2C8bE486A82740406986Fc5Bd696e0A02cb852C"; // WESA Token
   const amountToApprove = ethers.utils.parseEther("1000"); // Approve 1000 tokens for each
 
-  await approveToken(tokenAAddress, positionManagerAddress, amountToApprove, deployer);
+  //await approveToken(tokenAAddress, positionManagerAddress, amountToApprove, deployer);
   await approveToken(tokenBAddress, positionManagerAddress, amountToApprove, deployer);
 }
 
