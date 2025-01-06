@@ -76,15 +76,33 @@ async function main() {
     await approveIfNeeded(tokenAContract, amountADesired, positionManagerAddress);
     await approveIfNeeded(tokenBContract, amountBDesired, positionManagerAddress);
 
-    // 3. Validate Pool Existence
+    // Validate Pool and Tokens
     const poolAddress = await factoryContract.getPool(tokenA, tokenB, feeTier);
     if (poolAddress === ethers.constants.AddressZero) throw new Error('Pool does not exist.');
     console.log('Pool Address:', poolAddress);
 
-    // 4. Prepare and Estimate Transaction
+    const poolContract = await ethers.getContractAt(IUniswapV3Pool_ABI, poolAddress);
+    const [token0, token1] = await Promise.all([
+      poolContract.token0(),
+      poolContract.token1(),
+    ]);
+    console.log('Token0:', token0);
+    console.log('Token1:', token1);
+
+    const isTokenAFirst = tokenA.toLowerCase() === token0.toLowerCase();
+    const sortedToken0 = isTokenAFirst ? tokenA : tokenB;
+    const sortedToken1 = isTokenAFirst ? tokenB : tokenA;
+
+    console.log(`Sorted Tokens - Token0: ${sortedToken0}, Token1: ${sortedToken1}`);
+
+    // Validate Recipient
+    const recipient = deployer.address;
+    if (!recipient) throw new Error('Deployer address is undefined.');
+
+    // Prepare Mint Parameters
     const mintParams = {
-      token0: tokenA,
-      token1: tokenB,
+      token0: sortedToken0,
+      token1: sortedToken1,
       fee: feeTier,
       tickLower: tickLower,
       tickUpper: tickUpper,
@@ -92,9 +110,11 @@ async function main() {
       amount1Desired: amountBDesired,
       amount0Min: minAmount(amountADesired),
       amount1Min: minAmount(amountBDesired),
-      recipient: deployer.address,
+      recipient: recipient,
       deadline: deadline,
     };
+    console.log('Mint Parameters:', mintParams);
+
 
     console.log('Estimating gas...');
     const estimatedGas = await positionManager.estimateGas.mint(mintParams, { gasPrice });
