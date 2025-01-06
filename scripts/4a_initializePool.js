@@ -29,7 +29,13 @@ async function createOrInitializePool() {
     tokenA,
     tokenB,
     feeTier,
-    sqrtPriceX96
+    sqrtPriceX96,
+    {
+      // for EIP-1559 networks:
+      maxFeePerGas: ethers.utils.parseUnits("60", "gwei"),
+      maxPriorityFeePerGas: ethers.utils.parseUnits("1.5", "gwei"),
+      gasLimit: 9000000 // or a higher guess
+    }
   );
   const receipt = await tx.wait();
   console.log("Pool creation/initialization tx hash:", receipt.transactionHash);
