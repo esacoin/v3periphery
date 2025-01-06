@@ -31,10 +31,8 @@ async function createOrInitializePool() {
     feeTier,
     sqrtPriceX96,
     {
-      // for EIP-1559 networks:
-      maxFeePerGas: ethers.utils.parseUnits("60", "gwei"),
-      maxPriorityFeePerGas: ethers.utils.parseUnits("1.5", "gwei"),
-      gasLimit: 9000000 // or a higher guess
+        gasLimit: 5000000,
+        gasPrice: ethers.utils.parseUnits('20', 'gwei'),
     }
   );
   const receipt = await tx.wait();
